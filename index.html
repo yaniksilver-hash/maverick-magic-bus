@@ -349,11 +349,7 @@ function skipName(){ commitName(''); }
 function namedCard(){ rays.classList.add('on');
   show(`<span class="stamp">All aboard · ${who()}</span>
     <h2>Let's ride, ${who()}.</h2>
-    <p>Your seat's saved and the Magic Bus is rolling toward ${currentDest||'who knows where'}. Welcome to the ride, ${who()}.</p>
-    <div class="mini">
-      <button class="solid" onclick="resetRide()">Back to the stop</button>
-      <button onclick="askName()">Change name</button>
-    </div>`); }
+    <p>Your seat's saved and the Magic Bus is rolling toward ${currentDest||'who knows where'}. Welcome to the ride, ${who()}.</p>`); }
 
 /* ---------- YES: cinematic departure ---------- */
 const DESTS=['Your Next Big Idea','a room full of your fellow weirdos','Maverick Mischief',
