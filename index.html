@@ -324,8 +324,11 @@ function resetBus(){ bus.className='bus'; }
 function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
-/* ---------- rider name: a dynamic variable used throughout ---------- */
-let riderName=(localStorage.getItem('mvk_rider')||'').trim();
+/* ---------- rider name: a dynamic variable used throughout ----------
+   Accept a name handed off in the URL (?name=Yanik) from another experiment,
+   otherwise fall back to whatever was saved here before. */
+let riderName=(new URLSearchParams(location.search).get('name')||localStorage.getItem('mvk_rider')||'').trim();
+if(riderName){ riderName=riderName.charAt(0).toUpperCase()+riderName.slice(1); localStorage.setItem('mvk_rider',riderName); }
 let currentDest='';
 function who(){ return riderName || 'Maverick'; }      // friendly fallback
 function showGreeting(){ const g=document.getElementById('greeting');
