@@ -129,6 +129,39 @@
   @media (prefers-reduced-motion: reduce){
     .bus,.floater{animation:none!important} .bus{transition:none}
   }
+
+  /* personalized greeting chip in the hero */
+  .greeting{font-family:'Caveat',cursive; color:var(--green); font-size:1.4rem; margin-top:14px;
+    opacity:0; transition:opacity .6s ease}
+  .greeting.show{opacity:.95}
+
+  /* "what should we call you?" modal */
+  .modal{position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+    padding:22px; background:rgba(5,7,3,.74); -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+    opacity:0; animation:modalIn .3s ease forwards}
+  .modal[hidden]{display:none}
+  @keyframes modalIn{to{opacity:1}}
+  .modal-card{width:100%; max-width:440px; text-align:center;
+    background:linear-gradient(180deg,#141a0d,#0e120a); border:1px solid rgba(151,196,89,.35);
+    border-radius:22px; padding:34px 30px 28px; box-shadow:0 30px 70px rgba(0,0,0,.6);
+    transform:translateY(14px) scale(.98); animation:cardIn .42s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes cardIn{to{transform:none}}
+  .modal-kicker{font-family:'Caveat',cursive; color:var(--green); font-size:1.3rem;
+    display:inline-block; transform:rotate(-1.5deg)}
+  .modal-card h3{font-family:'Anton'; font-weight:400; text-transform:uppercase; letter-spacing:.5px;
+    font-size:1.7rem; line-height:1.05; margin:6px 0 18px}
+  .modal-card input{width:100%; font-family:'Source Serif 4',Georgia,serif; font-size:1.25rem;
+    text-align:center; color:var(--cream); background:#0b0f07; border:1px solid rgba(243,234,214,.25);
+    border-radius:12px; padding:14px 16px; outline:none; transition:border-color .2s, box-shadow .2s}
+  .modal-card input::placeholder{color:rgba(243,234,214,.4)}
+  .modal-card input:focus{border-color:var(--green); box-shadow:0 0 0 3px rgba(151,196,89,.16)}
+  .modal-card .submit{margin-top:16px; width:100%; cursor:pointer; font-family:'Anton'; letter-spacing:1px;
+    text-transform:uppercase; font-size:1.2rem; color:#0a0a0a; background:var(--green); border:none;
+    border-radius:12px; padding:14px; transition:background .2s}
+  .modal-card .submit:hover{background:#a6d062}
+  .modal-card .skip{margin-top:12px; cursor:pointer; background:none; border:none; color:var(--warm);
+    font-family:'Inter'; font-weight:600; font-size:.8rem; opacity:.55; transition:opacity .2s}
+  .modal-card .skip:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -138,6 +171,7 @@
 <div class="wrap">
   <h1>Get on the<br><span class="glow">Maverick Magic Bus</span>?</h1>
   <p class="sub">Maverick Multi-Dimensional Visionaries, Weirdos, Misfits and Mischief-makers welcome. One small catch: there's no map.</p>
+  <p class="greeting" id="greeting"></p>
 
   <div class="stage">
     <div class="spotlight"></div>
@@ -155,6 +189,17 @@
   </div>
 
   <div class="panel" id="panel"></div>
+</div>
+
+<div class="modal" id="nameModal" hidden>
+  <div class="modal-card">
+    <span class="modal-kicker">before we roll ✦</span>
+    <h3>What should we call you?</h3>
+    <input id="nameInput" type="text" placeholder="your first name" autocomplete="given-name"
+           maxlength="24" aria-label="Your first name">
+    <button class="submit" onclick="submitName()">Let's roll →</button>
+    <br><button class="skip" onclick="skipName()">just call me Maverick</button>
+  </div>
 </div>
 
 <script>
@@ -279,6 +324,34 @@ function resetBus(){ bus.className='bus'; }
 function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
+/* ---------- rider name: a dynamic variable used throughout ---------- */
+let riderName=(localStorage.getItem('mvk_rider')||'').trim();
+let currentDest='';
+function who(){ return riderName || 'Maverick'; }      // friendly fallback
+function showGreeting(){ const g=document.getElementById('greeting');
+  if(riderName){ g.textContent='Seat saved for '+riderName+' ✦'; g.classList.add('show'); }
+  else { g.textContent=''; g.classList.remove('show'); } }
+function askName(){ const m=document.getElementById('nameModal'); m.hidden=false;
+  const i=document.getElementById('nameInput'); i.value=riderName; setTimeout(()=>i.focus(),60); }
+function closeName(){ document.getElementById('nameModal').hidden=true; }
+function commitName(v){
+  v=(v||'').trim().split(/\s+/)[0];                    // first name only
+  if(v) v=v.charAt(0).toUpperCase()+v.slice(1);
+  riderName=v;
+  if(v) localStorage.setItem('mvk_rider',v); else localStorage.removeItem('mvk_rider');
+  closeName(); showGreeting(); chime(); namedCard();
+}
+function submitName(){ commitName(document.getElementById('nameInput').value); }
+function skipName(){ commitName(''); }
+function namedCard(){ rays.classList.add('on');
+  show(`<span class="stamp">All aboard · ${who()}</span>
+    <h2>Let's ride, ${who()}.</h2>
+    <p>Your seat's saved and the Magic Bus is rolling toward ${currentDest||'who knows where'}. Welcome to the ride, ${who()}.</p>
+    <div class="mini">
+      <button class="solid" onclick="resetRide()">Back to the stop</button>
+      <button onclick="askName()">Change name</button>
+    </div>`); }
+
 /* ---------- YES: cinematic departure ---------- */
 const DESTS=['Your Next Big Idea','a room full of your fellow weirdos','Maverick Mischief',
   'Maverick Magic','Maverick Moments your grandkids will remember'];
@@ -286,19 +359,19 @@ function sayYes(){
   chime();
   resetBus();                       // bus stays at the stop, ready to ride
   rays.classList.add('on');         // bright light glows + rotates behind it
-  const d0=DESTS[Math.floor(Math.random()*DESTS.length)];
+  currentDest=DESTS[Math.floor(Math.random()*DESTS.length)];
   show(`<span class="stamp">Ticket stamped · All Aboard</span>
-    <h2>Welcome aboard, Maverick.</h2>
+    <h2>Welcome aboard, ${who()}.</h2>
     <p>Here we go. Welcome to a busload of beautiful troublemakers heading who knows where…</p>
-    <p class="next">Next stop: <b id="dest">${d0}</b> ✦</p>
+    <p class="next">Next stop: <b id="dest">${currentDest}</b> ✦</p>
     <div class="mini">
-      <button class="solid" onclick="resetRide()">Let's Go!</button>
+      <button class="solid" onclick="askName()">Let's Go!</button>
       <button onclick="reroute()">New destination</button>
     </div>`);
 }
 function reroute(){ softtick(680); const d=document.getElementById('dest');
-  if(d){ d.style.opacity=0; setTimeout(()=>{ d.textContent=DESTS[Math.floor(Math.random()*DESTS.length)];
-    d.style.transition='opacity .3s'; d.style.opacity=1; }, 150); } }
+  if(d){ d.style.opacity=0; setTimeout(()=>{ currentDest=DESTS[Math.floor(Math.random()*DESTS.length)];
+    d.textContent=currentDest; d.style.transition='opacity .3s'; d.style.opacity=1; }, 150); } }
 
 /* ---------- NO: poof, the bus vanishes ---------- */
 function sayNo(){
@@ -333,9 +406,9 @@ let spinId=0;
 function sayMaybe(){
   const myId=++spinId; softtick(440); rays.classList.remove('on');
   show(`<span class="stamp" style="color:var(--fun);border-color:rgba(240,192,64,.4)">Mystery seat</span>
-    <h2>Reading your ticket…</h2>
+    <h2>Reading ${riderName ? riderName+"'s" : 'your'} ticket…</h2>
     <span class="big" id="seat">···</span>
-    <p id="seatDesc" style="opacity:.7">the Magic Bus is deciding which kind of Maverick you are…</p>
+    <p id="seatDesc" style="opacity:.7">${riderName ? "the Magic Bus is deciding which kind of Maverick "+riderName+" is…" : "the Magic Bus is deciding which kind of Maverick you are…"}</p>
     <div class="mini">
       <button class="solid" onclick="sayMaybe()">Spin again</button>
       <button onclick="sayYes()">Claim this seat, yes →</button>
@@ -365,6 +438,12 @@ function sayMaybe(){
 
 function resetRide(){ spinId++; rays.classList.remove('on'); resetBus(); panel.innerHTML='';
   window.scrollTo({top:0,behavior:'smooth'}); }
+
+/* init: Enter submits / Escape closes the name field; restore a saved name */
+const _ni=document.getElementById('nameInput');
+_ni.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); submitName(); }
+  else if(e.key==='Escape'){ closeName(); } });
+if(riderName) showGreeting();
 </script>
 </body>
 </html>
