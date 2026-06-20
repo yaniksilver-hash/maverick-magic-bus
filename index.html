@@ -52,6 +52,19 @@
     width:min(440px,70vw); height:30px; z-index:1; pointer-events:none;
     background:radial-gradient(closest-side, rgba(0,0,0,.55), transparent 78%);
     filter:blur(7px)}
+  /* "ready to ride" sunburst that glows + rotates behind the bus on YES */
+  .rays{position:absolute; left:50%; bottom:30px; width:min(660px,96vw); height:min(660px,96vw);
+    transform:translate(-50%,24%) scale(.55); opacity:0; z-index:2; pointer-events:none; border-radius:50%;
+    background:radial-gradient(circle, rgba(240,192,64,.42) 0%, rgba(151,196,89,.2) 30%, transparent 62%);
+    transition:opacity .7s ease, transform .9s cubic-bezier(.2,.7,.2,1); will-change:transform,opacity}
+  .rays::before{content:""; position:absolute; inset:-6%; border-radius:50%;
+    background:repeating-conic-gradient(from 0deg, rgba(243,234,214,.2) 0deg 5deg, transparent 5deg 17deg);
+    -webkit-mask:radial-gradient(circle, #000 20%, transparent 66%);
+            mask:radial-gradient(circle, #000 20%, transparent 66%);
+    animation:spin 24s linear infinite, glowpulse 3.4s ease-in-out infinite}
+  .rays.on{opacity:1; transform:translate(-50%,24%) scale(1)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes glowpulse{0%,100%{opacity:.7}50%{opacity:1}}
   .floater{position:relative; z-index:5; width:min(560px,86vw);
     transform:translateY(18px); opacity:0;
     animation:arrive 1.25s cubic-bezier(.2,.65,.2,1) .15s forwards}
@@ -128,6 +141,7 @@
 
   <div class="stage">
     <div class="spotlight"></div>
+    <div class="rays" id="rays"></div>
     <div class="ground"></div>
     <div class="floater" id="floater">
       <div class="bus" id="bus"><img src="assets/bus-only.png" alt="Hand-drawn green Maverick Magic Bus with a rainbow trail"></div>
@@ -260,7 +274,7 @@ function poofSound(){ try{ const a=AC(), now=a.currentTime, dur=.34;
 }
 
 /* ---------- helpers ---------- */
-const bus=document.getElementById('bus'), panel=document.getElementById('panel');
+const bus=document.getElementById('bus'), panel=document.getElementById('panel'), rays=document.getElementById('rays');
 function resetBus(){ bus.className='bus'; }
 function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
@@ -269,8 +283,9 @@ function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
 const DESTS=['Your Next Big Idea','a room full of your fellow weirdos','Maverick Mischief',
   'Maverick Magic','Maverick Moments your grandkids will remember'];
 function sayYes(){
-  chime(); setTimeout(whoosh,140); sendoff(42);
-  resetBus(); void bus.offsetWidth; bus.classList.add('depart');
+  chime();
+  resetBus();                       // bus stays at the stop, ready to ride
+  rays.classList.add('on');         // bright light glows + rotates behind it
   const d0=DESTS[Math.floor(Math.random()*DESTS.length)];
   show(`<span class="stamp">Ticket stamped · All Aboard</span>
     <h2>Welcome aboard, Maverick.</h2>
@@ -280,7 +295,6 @@ function sayYes(){
       <button class="solid" onclick="resetRide()">Let's Go!</button>
       <button onclick="reroute()">New destination</button>
     </div>`);
-  setTimeout(resetBus, 2600);
 }
 function reroute(){ softtick(680); const d=document.getElementById('dest');
   if(d){ d.style.opacity=0; setTimeout(()=>{ d.textContent=DESTS[Math.floor(Math.random()*DESTS.length)];
@@ -288,15 +302,16 @@ function reroute(){ softtick(680); const d=document.getElementById('dest');
 
 /* ---------- NO: poof, the bus vanishes ---------- */
 function sayNo(){
-  poofSound(); resetBus(); void bus.offsetWidth; bus.classList.add('poof');
-  setTimeout(puff, 140);
+  poofSound(); rays.classList.remove('on');
+  resetBus(); void bus.offsetWidth; bus.classList.add('poof');   // shrink + fade away for good
+  setTimeout(()=>{ puff(); sendoff(40); }, 130);                 // smoke poof + a little confetti pop
   show(`<span class="stamp" style="color:#9a9a9a;border-color:rgba(255,255,255,.18)">Nope. No way. No how.</span>
     <h2>Poof! Gone.</h2>
     <p>Peace.</p>
     <div class="mini">
       <button class="solid" onclick="sayYes()">On second thought, yes →</button>
     </div>`);
-  setTimeout(resetBus, 2600);
+  // no reset: once it poofs, the bus is gone
 }
 
 /* ---------- ???: a slowing, decelerating reveal (no arcade slot machine) ---------- */
@@ -316,7 +331,7 @@ const SEATS=[
 ];
 let spinId=0;
 function sayMaybe(){
-  const myId=++spinId; softtick(440);
+  const myId=++spinId; softtick(440); rays.classList.remove('on');
   show(`<span class="stamp" style="color:var(--fun);border-color:rgba(240,192,64,.4)">Mystery seat</span>
     <h2>Reading your ticket…</h2>
     <span class="big" id="seat">···</span>
@@ -348,7 +363,7 @@ function sayMaybe(){
   })();
 }
 
-function resetRide(){ spinId++; resetBus(); panel.innerHTML='';
+function resetRide(){ spinId++; rays.classList.remove('on'); resetBus(); panel.innerHTML='';
   window.scrollTo({top:0,behavior:'smooth'}); }
 </script>
 </body>
