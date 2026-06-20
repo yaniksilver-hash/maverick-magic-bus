@@ -122,9 +122,8 @@
 <canvas id="fx"></canvas>
 
 <div class="wrap">
-  <span class="kicker">exact fare not required · check your ticket ✦</span>
   <h1>Get on the<br><span class="glow">Maverick Magic Bus</span>?</h1>
-  <p class="sub">Weirdos, misfits, mischief-makers &amp; reality-benders welcome. One small catch: there's no map.</p>
+  <p class="sub">Maverick Multi-Dimensional Visionaries, Weirdos, Misfits and Mischief-makers welcome. One small catch: there's no map.</p>
 
   <div class="stage">
     <div class="spotlight"></div>
@@ -135,13 +134,12 @@
   </div>
 
   <div class="tickets">
-    <button class="ticket yes" onclick="sayYes()">Yes<small>all aboard</small></button>
-    <button class="ticket no" onclick="sayNo()">No<small>maybe next loop</small></button>
-    <button class="ticket maybe" onclick="sayMaybe()">???<small>surprise me</small></button>
+    <button class="ticket yes" onclick="sayYes()">Yes<small>All Aboard</small></button>
+    <button class="ticket no" onclick="sayNo()">No<small>Stranger Danger</small></button>
+    <button class="ticket maybe" onclick="sayMaybe()">???<small>Surprise Me</small></button>
   </div>
 
   <div class="panel" id="panel"></div>
-  <div class="footer">a little voyage experiment · not the real fare ✦</div>
 </div>
 
 <script>
@@ -244,17 +242,14 @@ function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
 /* ---------- YES — cinematic departure ---------- */
-const DESTS=['the unknown','Year One of something weird','your next impossible idea',
-  'the edge of the comfort zone','a room full of your people','the plot twist','beyond the map',
-  'the version of you that already did it','good trouble','the cosmic punchline'];
+const DESTS=['Your Next Big Idea','a room full of your fellow weirdos','Maverick Mischief',
+  'Maverick Magic','Maverick Moments your grandkids will remember'];
 function sayYes(){
   chime(); setTimeout(whoosh,140); sendoff(42);
   resetBus(); void bus.offsetWidth; bus.classList.add('depart');
-  show(`<span class="stamp">Ticket stamped · Aboard</span>
+  show(`<span class="stamp">Ticket stamped · All Aboard</span>
     <h2>Welcome aboard, Maverick.</h2>
-    <p>The doors close, the rainbow catches, and the bus leans into the horizon —
-    no map, no exact fare. Just a busload of beautiful troublemakers headed somewhere
-    that doesn't exist yet.</p>
+    <p>Here we go. Welcome to a busload of beautiful troublemakers heading who knows where…</p>
     <p class="next">Next stop: <b id="dest">the unknown</b> ✦</p>
     <div class="mini">
       <button class="solid" onclick="reroute()">Reroll the destination</button>
@@ -269,31 +264,29 @@ function reroute(){ softtick(680); const d=document.getElementById('dest');
 /* ---------- NO — a dignified pull-away ---------- */
 function sayNo(){
   tone(196,0,.5,.05); resetBus(); void bus.offsetWidth; bus.classList.add('pullback');
-  show(`<span class="stamp" style="color:#9a9a9a;border-color:rgba(255,255,255,.18)">No refunds on wonder</span>
+  show(`<span class="stamp" style="color:#9a9a9a;border-color:rgba(255,255,255,.18)">Nope. No way. No how.</span>
     <h2>The bus pulls away.</h2>
-    <p>But here's the thing about the Magic Bus — <em>it always comes back around.</em>
-    It'll idle at your corner, rainbow humming, for exactly as long as it takes.</p>
+    <p>Peace.</p>
     <div class="mini">
       <button class="solid" onclick="sayYes()">On second thought — yes →</button>
-      <button onclick="resetRide()">Let it loop</button>
     </div>`);
   setTimeout(resetBus, 1900);
 }
 
 /* ---------- ??? — a slowing, decelerating reveal (no arcade slot machine) ---------- */
 const SEATS=[
-  ['WEIRDO','Beautifully mis-wired. The world catches up to you later.'],
+  ['WEIRDO','Why not? Your weird is what makes you wonderful.'],
   ['MISFIT','You never fit the box — so you built a better one.'],
-  ['MISCHIEF MAKER','Good trouble is your native language.'],
-  ['RULE BREAKER','Rules are just v1.0. You ship the patch.'],
-  ['REALITY BENDER','You renegotiate "possible" before breakfast.'],
-  ['MULTI-DIMENSIONAL VISIONARY','You see three moves and one dimension ahead.'],
-  ['COSMIC CREATOR','You make things that never asked permission to exist.'],
-  ['REBEL ROUSER','You turn quiet rooms into movements.'],
-  ['SUN SPARKER','You hand out light like it\'s free. (It is.)'],
-  ['COMMUNITY CATALYST','The dots find each other when you\'re in the room.'],
-  ['EVOLUTIONARY','You don\'t adapt to the future — you recruit it.'],
-  ['MAVERICK MYSTIC','Equal parts hustle and wonder. Bottom line meets cosmos.']
+  ['MISCHIEF MAKER','Good trouble is your love language.'],
+  ['RULE BREAKER','Rules. Nah!'],
+  ['INDUSTRY DISRUPTOR','It\'s not "just business" to you.'],
+  ['MULTI-DIMENSIONAL VISIONARY','You see what\'s possible across all dimensions, beyond just business as usual.'],
+  ['LUMINARY LEADER','You give others permission to shine.'],
+  ['REBEL ROUSER','You can\'t help but nudge others into their greatest work.'],
+  ['SUN SPARKER','You are lighting Suns everywhere you go.'],
+  ['CATALYST','You can\'t help but connect the dots and people together.'],
+  ['EVOLUTIONARY','You\'re here for the world we all believe is possible.'],
+  ['MAVERICK MYSTIC','Equal parts commerce and cosmic.']
 ];
 let spinId=0;
 function sayMaybe(){
@@ -301,7 +294,7 @@ function sayMaybe(){
   show(`<span class="stamp" style="color:var(--fun);border-color:rgba(240,192,64,.4)">Mystery seat</span>
     <h2>Reading your ticket…</h2>
     <span class="big" id="seat">———</span>
-    <p id="seatDesc" style="opacity:.7">the bus is deciding which kind of maverick you are…</p>
+    <p id="seatDesc" style="opacity:.7">the Magic Bus is deciding which kind of Maverick you are…</p>
     <div class="mini">
       <button class="solid" onclick="sayMaybe()">Spin again</button>
       <button onclick="sayYes()">Claim this seat — yes →</button>
