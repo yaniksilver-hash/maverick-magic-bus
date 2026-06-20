@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Maverick Magic Bus — Voyage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --cream:#f3ead6; --green:#97c459; --growth:#7bb02b;
+    --warm:#d8c089; --impact:#c490e0; --fun:#f0c040;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(120% 90% at 50% 8%, #16210f 0%, #0c1208 38%, var(--bg) 78%);
+    color:var(--cream); font-family:'Inter',system-ui,sans-serif;
+    min-height:100%; overflow-x:hidden; position:relative;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  /* twinkling starfield */
+  #stars{position:fixed; inset:0; z-index:0; pointer-events:none}
+  #confetti{position:fixed; inset:0; z-index:60; pointer-events:none}
+
+  .wrap{position:relative; z-index:10; width:100%; max-width:980px;
+    padding:42px 20px 80px; text-align:center}
+
+  .kicker{font-family:'Caveat',cursive; font-size:1.6rem; color:var(--green);
+    letter-spacing:.5px; transform:rotate(-2deg); display:inline-block; opacity:.95}
+
+  h1{font-family:'Anton',sans-serif; font-weight:400; line-height:.96;
+    font-size:clamp(2.6rem,8vw,5.4rem); letter-spacing:.5px; margin:.1em 0 .15em;
+    text-transform:uppercase; text-shadow:0 2px 0 rgba(0,0,0,.4)}
+  h1 .glow{color:var(--green);
+    text-shadow:0 0 26px rgba(151,196,89,.55), 0 0 60px rgba(123,176,43,.35)}
+  .sub{font-family:'Source Serif 4',Georgia,serif; color:var(--warm);
+    font-size:clamp(1rem,2.4vw,1.25rem); max-width:540px; margin:0 auto; opacity:.85}
+
+  /* bus stage */
+  .stage{position:relative; height:320px; margin:18px auto 6px; width:100%;
+    display:flex; align-items:center; justify-content:center}
+  .road{position:absolute; bottom:54px; left:-5%; width:110%; height:2px;
+    background:repeating-linear-gradient(90deg, rgba(216,192,137,.5) 0 24px, transparent 24px 48px);
+    filter:blur(.3px); opacity:.55}
+  .bus{position:relative; width:min(560px,86vw); z-index:5;
+    filter:drop-shadow(0 18px 26px rgba(0,0,0,.55)) drop-shadow(0 0 30px rgba(151,196,89,.18));
+    animation:bob 3.6s ease-in-out infinite; transform-origin:60% 80%;
+    transition:transform 1.6s cubic-bezier(.5,.02,.2,1), opacity 1.2s ease;
+    will-change:transform}
+  .bus img{width:100%; display:block; image-rendering:auto}
+  @keyframes bob{
+    0%,100%{transform:translateY(0) rotate(-.6deg)}
+    50%{transform:translateY(-12px) rotate(.6deg)}
+  }
+  .glowpool{position:absolute; bottom:40px; width:300px; height:46px; z-index:1;
+    background:radial-gradient(closest-side, rgba(151,196,89,.4), transparent);
+    filter:blur(8px); animation:pulse 3.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5;transform:scaleX(1)}50%{opacity:.85;transform:scaleX(1.12)}}
+
+  /* state classes for the bus */
+  .bus.drive{animation:none; transform:translateX(140%) translateY(-6px) rotate(2deg); opacity:0}
+  .bus.reverse{animation:none; transform:translateX(-14%) rotate(-3deg)}
+  .bus.shake{animation:shake .5s ease-in-out 2}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px) rotate(-2deg)}75%{transform:translateX(8px) rotate(2deg)}}
+
+  /* ticket buttons */
+  .tickets{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:10px}
+  .ticket{
+    --c:var(--green);
+    position:relative; cursor:pointer; border:none; background:#13180d;
+    color:var(--cream); font-family:'Anton',sans-serif; letter-spacing:1px;
+    text-transform:uppercase; font-size:1.5rem; padding:18px 34px; border-radius:14px;
+    box-shadow:0 0 0 2px var(--c) inset, 0 10px 0 -4px rgba(0,0,0,.5), 0 14px 28px rgba(0,0,0,.45);
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease;
+    outline:none}
+  .ticket small{display:block; font-family:'Inter'; font-weight:600; font-size:.62rem;
+    letter-spacing:2px; color:var(--warm); opacity:.7; margin-top:4px}
+  /* perforation notches */
+  .ticket::before,.ticket::after{content:""; position:absolute; top:50%; width:16px; height:16px;
+    background:var(--bg); border-radius:50%; transform:translateY(-50%)}
+  .ticket::before{left:-9px} .ticket::after{right:-9px}
+  .ticket:hover{transform:translateY(-3px) rotate(-1deg);
+    box-shadow:0 0 0 2px var(--c) inset, 0 0 22px var(--c), 0 16px 30px rgba(0,0,0,.5)}
+  .ticket:active{transform:translateY(2px)}
+  .ticket.yes{--c:var(--green)}
+  .ticket.no{--c:#6b6b6b}
+  .ticket.maybe{--c:var(--fun)}
+  .ticket.maybe{font-size:1.7rem}
+
+  /* result panel */
+  .panel{margin:30px auto 0; max-width:600px; min-height:10px}
+  .card{
+    background:linear-gradient(180deg,#14190e,#0e120a);
+    border:1px solid rgba(151,196,89,.28); border-radius:18px; padding:26px 26px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5); opacity:0; transform:translateY(14px) scale(.98);
+    animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1; transform:none}}
+  .card .stamp{font-family:'Anton'; letter-spacing:2px; font-size:.8rem;
+    color:#0a0a0a; background:var(--green); display:inline-block; padding:5px 12px;
+    border-radius:6px; transform:rotate(-3deg); margin-bottom:12px}
+  .card h2{font-family:'Anton'; font-weight:400; font-size:1.9rem; line-height:1.05;
+    text-transform:uppercase; margin-bottom:8px}
+  .card p{font-family:'Source Serif 4',Georgia,serif; color:var(--warm); font-size:1.05rem; line-height:1.5}
+  .card .big{font-family:'Anton'; font-size:2.6rem; color:var(--fun); display:block; margin:6px 0 2px; letter-spacing:1px}
+  .mini{margin-top:16px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+  .mini button{cursor:pointer; font-family:'Inter'; font-weight:800; font-size:.85rem;
+    letter-spacing:.5px; padding:10px 18px; border-radius:10px; border:1px solid rgba(243,234,214,.25);
+    background:transparent; color:var(--cream); transition:.18s}
+  .mini button:hover{background:rgba(243,234,214,.1); border-color:var(--green)}
+  .mini button.solid{background:var(--green); color:#0a0a0a; border-color:var(--green)}
+  .footer{margin-top:40px; font-family:'Caveat',cursive; color:var(--warm); opacity:.6; font-size:1.15rem}
+  .reduced .bus{animation:none}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <span class="kicker">exact fare not required · check your ticket ✦</span>
+  <h1>Get on the<br><span class="glow">Maverick Magic Bus</span>?</h1>
+  <p class="sub">Weirdos, misfits, mischief-makers &amp; reality-benders welcome. One small catch: there's no map.</p>
+
+  <div class="stage">
+    <div class="glowpool" id="glowpool"></div>
+    <div class="road"></div>
+    <div class="bus" id="bus"><img src="assets/bus-only.png" alt="Hand-drawn green Maverick Magic Bus with a rainbow trail"></div>
+  </div>
+
+  <div class="tickets">
+    <button class="ticket yes" onclick="sayYes()">Yes!<small>all aboard</small></button>
+    <button class="ticket no" onclick="sayNo()">No.<small>maybe next loop</small></button>
+    <button class="ticket maybe" onclick="sayMaybe()">???<small>surprise me</small></button>
+  </div>
+
+  <div class="panel" id="panel"></div>
+
+  <div class="footer">a little voyage experiment · not the real fare ✦</div>
+</div>
+
+<script>
+/* ---------- starfield ---------- */
+const sky = document.getElementById('stars'), sx = sky.getContext('2d');
+let stars=[];
+function sizeSky(){ sky.width=innerWidth; sky.height=innerHeight;
+  stars = Array.from({length: Math.min(160, Math.floor(innerWidth*innerHeight/9000))}, ()=>({
+    x:Math.random()*sky.width, y:Math.random()*sky.height,
+    r:Math.random()*1.6+.3, t:Math.random()*Math.PI*2, s:Math.random()*.04+.01,
+    c: Math.random()<.18 ? '#97c459' : (Math.random()<.5? '#f3ead6':'#d8c089')
+  }));
+}
+sizeSky(); addEventListener('resize', sizeSky);
+(function twinkle(){
+  sx.clearRect(0,0,sky.width,sky.height);
+  for(const st of stars){ st.t+=st.s; const a=.35+Math.abs(Math.sin(st.t))*.65;
+    sx.globalAlpha=a; sx.fillStyle=st.c; sx.beginPath();
+    sx.arc(st.x,st.y,st.r,0,7); sx.fill(); }
+  sx.globalAlpha=1; requestAnimationFrame(twinkle);
+})();
+
+/* ---------- confetti ---------- */
+const cf = document.getElementById('confetti'), cx = cf.getContext('2d');
+function sizeCf(){ cf.width=innerWidth; cf.height=innerHeight; }
+sizeCf(); addEventListener('resize', sizeCf);
+let pieces=[];
+const COLORS=['#97c459','#7bb02b','#f0c040','#c490e0','#f3ead6','#d8c089'];
+function burst(n=140){
+  const ox=innerWidth/2, oy=innerHeight*0.42;
+  for(let i=0;i<n;i++){ const ang=Math.random()*Math.PI*2, sp=Math.random()*9+3;
+    pieces.push({x:ox,y:oy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-4,
+      r:Math.random()*7+3, c:COLORS[i%COLORS.length], rot:Math.random()*7, vr:(Math.random()-.5)*.4, life:0}); }
+}
+(function confettiLoop(){
+  cx.clearRect(0,0,cf.width,cf.height);
+  pieces=pieces.filter(p=>p.life<160);
+  for(const p of pieces){ p.vy+=.18; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++;
+    cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot); cx.globalAlpha=Math.max(0,1-p.life/160);
+    cx.fillStyle=p.c; cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); cx.restore(); }
+  requestAnimationFrame(confettiLoop);
+})();
+
+/* ---------- sound (tiny horn) ---------- */
+let actx;
+function horn(){
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const now=actx.currentTime;
+    [[330,0],[440,.14],[523,.28]].forEach(([f,t])=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.type='sawtooth'; o.frequency.value=f; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0, now+t); g.gain.linearRampToValueAtTime(.12, now+t+.03);
+      g.gain.exponentialRampToValueAtTime(.001, now+t+.32);
+      o.start(now+t); o.stop(now+t+.34);
+    });
+  }catch(e){}
+}
+function blip(freq=520){
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain(), now=actx.currentTime;
+    o.type='triangle'; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(.0001,now); g.gain.exponentialRampToValueAtTime(.1,now+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,now+.2); o.start(now); o.stop(now+.22);
+  }catch(e){}
+}
+
+/* ---------- helpers ---------- */
+const bus = document.getElementById('bus');
+const panel = document.getElementById('panel');
+function clearBus(){ bus.className='bus'; }
+function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+/* ---------- YES ---------- */
+function sayYes(){
+  horn(); burst(150);
+  clearBus(); void bus.offsetWidth; bus.classList.add('drive');
+  show(`<span class="stamp">★ Ticket Stamped: ABOARD ★</span>
+    <h2>Welcome aboard, Maverick.</h2>
+    <p>The doors hiss shut, the rainbow kicks in, and the bus pulls toward the
+    horizon. No map, no exact fare — just a busload of beautiful troublemakers
+    headed somewhere that doesn't exist yet.</p>
+    <p style="margin-top:10px;color:var(--green);font-family:Inter;font-weight:700">
+    Next stop: <span id="dest">the unknown</span> ✦</p>
+    <div class="mini">
+      <button class="solid" onclick="reroute()">🎲 Reroll the destination</button>
+      <button onclick="resetRide()">↺ Back to the stop</button>
+    </div>`);
+  setTimeout(()=>{ clearBus(); }, 2200); // bus loops back into view
+}
+const DESTS=['the unknown','Year One of something weird','your next impossible idea',
+  'the edge of the comfort zone','a room full of your people','the plot twist','beyond the map',
+  'the version of you that already did it','good trouble','the cosmic punchline'];
+function reroute(){ blip(660); const d=document.getElementById('dest');
+  if(d) d.textContent = DESTS[Math.floor(Math.random()*DESTS.length)]; }
+
+/* ---------- NO ---------- */
+function sayNo(){
+  blip(180); clearBus(); void bus.offsetWidth; bus.classList.add('reverse');
+  show(`<span class="stamp" style="background:#6b6b6b">refund denied · no refunds on wonder</span>
+    <h2>The bus pulls away…</h2>
+    <p>…but here's the thing about the Magic Bus: <em>it always loops back around.</em>
+    It'll idle at your corner, rainbow humming, for exactly as long as it takes.</p>
+    <p style="margin-top:8px;font-style:italic;opacity:.8">No pressure. (Okay, a little pressure. 😏)</p>
+    <div class="mini">
+      <button class="solid" onclick="sayYes()">…oh fine, YES →</button>
+      <button onclick="resetRide()">Let it loop</button>
+    </div>`);
+  setTimeout(()=>{ clearBus(); }, 1400);
+}
+
+/* ---------- ??? mystery archetype ---------- */
+const SEATS=[
+  ['WEIRDO','Beautifully mis-wired. The world catches up to you later.'],
+  ['MISFIT','You never fit the box — so you built a better one.'],
+  ['MISCHIEF MAKER','Good trouble is your native language.'],
+  ['RULE BREAKER','Rules are just v1.0. You ship the patch.'],
+  ['REALITY BENDER','You renegotiate "possible" before breakfast.'],
+  ['MULTI-DIMENSIONAL VISIONARY','You see three moves and one dimension ahead.'],
+  ['COSMIC CREATOR','You make things that never asked permission to exist.'],
+  ['REBEL ROUSER','You turn quiet rooms into movements.'],
+  ['SUN SPARKER','You hand out light like it\'s free. (It is.)'],
+  ['COMMUNITY CATALYST','The dots find each other when you\'re in the room.'],
+  ['EVOLUTIONARY','You don\'t adapt to the future — you recruit it.'],
+  ['MAVERICK MYSTIC','Equal parts hustle and wonder. Bottom line meets cosmos.']
+];
+let spinTimer=null;
+function sayMaybe(){
+  blip(440); burst(40);
+  show(`<span class="stamp" style="background:var(--fun);color:#0a0a0a">? mystery seat ?</span>
+    <h2>Reading your ticket…</h2>
+    <span class="big" id="seat">— — —</span>
+    <p id="seatDesc">The bus is deciding which kind of maverick you are…</p>
+    <div class="mini">
+      <button class="solid" onclick="sayMaybe()">🎰 Spin again</button>
+      <button onclick="sayYes()">Claim this seat — YES →</button>
+    </div>`);
+  const seat=document.getElementById('seat'), desc=document.getElementById('seatDesc');
+  let ticks=0; const total=18+Math.floor(Math.random()*8);
+  clearInterval(spinTimer);
+  spinTimer=setInterval(()=>{
+    const pick=SEATS[Math.floor(Math.random()*SEATS.length)];
+    seat.textContent=pick[0]; ticks++;
+    if(ticks%2===0) blip(300+Math.random()*500);
+    if(ticks>=total){ clearInterval(spinTimer);
+      const final=SEATS[Math.floor(Math.random()*SEATS.length)];
+      seat.textContent=final[0]; desc.textContent='“'+final[1]+'”';
+      seat.style.transform='scale(1.12)'; setTimeout(()=>seat.style.transform='',180);
+      burst(60); horn();
+    }
+  }, 70);
+}
+
+/* ---------- reset ---------- */
+function resetRide(){ clearInterval(spinTimer); clearBus(); panel.innerHTML='';
+  window.scrollTo({top:0,behavior:'smooth'}); }
+
+/* respect reduced motion */
+if(matchMedia('(prefers-reduced-motion: reduce)').matches) document.body.classList.add('reduced');
+</script>
+</body>
+</html>
