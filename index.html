@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Maverick Magic Bus — Voyage</title>
+<title>The Maverick Magic Bus · Voyage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;800&family=Caveat:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
@@ -67,7 +67,8 @@
 
   /* interaction states */
   .bus.depart{animation:none; transform:translateX(132%) scale(.78) rotate(1.5deg); opacity:0}
-  .bus.pullback{animation:none; transform:translateX(-9%) scale(.97) rotate(-1.2deg); opacity:.78}
+  .bus.poof{animation:none; transition:transform .5s cubic-bezier(.4,0,.3,1), opacity .42s ease;
+    transform:scale(.06) rotate(8deg); opacity:0}
 
   /* ---- ticket buttons ---- */
   .tickets{display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:6px}
@@ -198,13 +199,25 @@ function sendoff(n=40){
       w:Math.random()*5+2, h:Math.random()*2+1.4, rot:Math.random()*7, vr:(Math.random()-.5)*.18,
       c:PAL[i%PAL.length], life:0, max:150+Math.random()*60}); }
 }
+function puff(){            // soft vanishing cloud for the NO poof
+  if(reduce) return;
+  const r=document.getElementById('bus').getBoundingClientRect();
+  const ox=r.left+r.width*0.5, oy=r.top+r.height*0.5;
+  const cols=['rgba(243,234,214,.5)','rgba(216,192,137,.45)','rgba(151,196,89,.4)','rgba(190,190,190,.4)'];
+  for(let i=0;i<16;i++){ const ang=Math.random()*Math.PI*2, sp=Math.random()*2.2+.5;
+    bits.push({shape:'puff', x:ox+(Math.random()-.5)*r.width*.3, y:oy+(Math.random()-.5)*r.height*.3,
+      vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp-.4, pr:Math.random()*9+5, grow:Math.random()*1.1+.5,
+      c:cols[i%cols.length], life:0, max:42+Math.random()*26}); }
+}
 (function fxLoop(){
   cx.clearRect(0,0,fx.width,fx.height);
   bits=bits.filter(b=>b.life<b.max);
-  for(const b of bits){ b.vy+=.055; b.vx*=.992; b.x+=b.vx; b.y+=b.vy; b.rot+=b.vr; b.life++;
-    cx.save(); cx.translate(b.x,b.y); cx.rotate(b.rot);
+  for(const b of bits){ b.vy+=(b.shape==='puff'?.012:.055); b.vx*=.992; b.x+=b.vx; b.y+=b.vy; b.life++;
+    cx.save(); cx.translate(b.x,b.y);
     cx.globalAlpha=Math.max(0,1-b.life/b.max)*.9; cx.fillStyle=b.c;
-    cx.fillRect(-b.w/2,-b.h/2,b.w,b.h); cx.restore(); }
+    if(b.shape==='puff'){ b.pr+=b.grow; cx.beginPath(); cx.arc(0,0,b.pr,0,7); cx.fill(); }
+    else { cx.rotate(b.rot+=b.vr); cx.fillRect(-b.w/2,-b.h/2,b.w,b.h); }
+    cx.restore(); }
   requestAnimationFrame(fxLoop);
 })();
 
@@ -234,6 +247,17 @@ function whoosh(){ // filtered-noise departure
     src.connect(bp); bp.connect(g); g.connect(a.destination); src.start(now); src.stop(now+dur);
   }catch(e){}
 }
+function poofSound(){ try{ const a=AC(), now=a.currentTime, dur=.34;
+    const buf=a.createBuffer(1,a.sampleRate*dur,a.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const src=a.createBufferSource(); src.buffer=buf;
+    const lp=a.createBiquadFilter(); lp.type='lowpass';
+    lp.frequency.setValueAtTime(1300,now); lp.frequency.exponentialRampToValueAtTime(280,now+dur);
+    const g=a.createGain(); g.gain.setValueAtTime(.0001,now);
+    g.gain.linearRampToValueAtTime(.06,now+.02); g.gain.exponentialRampToValueAtTime(.0001,now+dur);
+    src.connect(lp); lp.connect(g); g.connect(a.destination); src.start(now); src.stop(now+dur);
+  }catch(e){}
+}
 
 /* ---------- helpers ---------- */
 const bus=document.getElementById('bus'), panel=document.getElementById('panel');
@@ -241,19 +265,20 @@ function resetBus(){ bus.className='bus'; }
 function show(html){ panel.innerHTML='<div class="card">'+html+'</div>';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
-/* ---------- YES — cinematic departure ---------- */
+/* ---------- YES: cinematic departure ---------- */
 const DESTS=['Your Next Big Idea','a room full of your fellow weirdos','Maverick Mischief',
   'Maverick Magic','Maverick Moments your grandkids will remember'];
 function sayYes(){
   chime(); setTimeout(whoosh,140); sendoff(42);
   resetBus(); void bus.offsetWidth; bus.classList.add('depart');
+  const d0=DESTS[Math.floor(Math.random()*DESTS.length)];
   show(`<span class="stamp">Ticket stamped · All Aboard</span>
     <h2>Welcome aboard, Maverick.</h2>
     <p>Here we go. Welcome to a busload of beautiful troublemakers heading who knows where…</p>
-    <p class="next">Next stop: <b id="dest">the unknown</b> ✦</p>
+    <p class="next">Next stop: <b id="dest">${d0}</b> ✦</p>
     <div class="mini">
-      <button class="solid" onclick="reroute()">Reroll the destination</button>
-      <button onclick="resetRide()">Back to the stop</button>
+      <button class="solid" onclick="resetRide()">Let's Go!</button>
+      <button onclick="reroute()">New destination</button>
     </div>`);
   setTimeout(resetBus, 2600);
 }
@@ -261,22 +286,23 @@ function reroute(){ softtick(680); const d=document.getElementById('dest');
   if(d){ d.style.opacity=0; setTimeout(()=>{ d.textContent=DESTS[Math.floor(Math.random()*DESTS.length)];
     d.style.transition='opacity .3s'; d.style.opacity=1; }, 150); } }
 
-/* ---------- NO — a dignified pull-away ---------- */
+/* ---------- NO: poof, the bus vanishes ---------- */
 function sayNo(){
-  tone(196,0,.5,.05); resetBus(); void bus.offsetWidth; bus.classList.add('pullback');
+  poofSound(); resetBus(); void bus.offsetWidth; bus.classList.add('poof');
+  setTimeout(puff, 140);
   show(`<span class="stamp" style="color:#9a9a9a;border-color:rgba(255,255,255,.18)">Nope. No way. No how.</span>
-    <h2>The bus pulls away.</h2>
+    <h2>Poof! Gone.</h2>
     <p>Peace.</p>
     <div class="mini">
-      <button class="solid" onclick="sayYes()">On second thought — yes →</button>
+      <button class="solid" onclick="sayYes()">On second thought, yes →</button>
     </div>`);
-  setTimeout(resetBus, 1900);
+  setTimeout(resetBus, 2600);
 }
 
-/* ---------- ??? — a slowing, decelerating reveal (no arcade slot machine) ---------- */
+/* ---------- ???: a slowing, decelerating reveal (no arcade slot machine) ---------- */
 const SEATS=[
   ['WEIRDO','Why not? Your weird is what makes you wonderful.'],
-  ['MISFIT','You never fit the box — so you built a better one.'],
+  ['MISFIT','You never fit the box, so you built a better one.'],
   ['MISCHIEF MAKER','Good trouble is your love language.'],
   ['RULE BREAKER','Rules. Nah!'],
   ['INDUSTRY DISRUPTOR','It\'s not "just business" to you.'],
@@ -293,11 +319,11 @@ function sayMaybe(){
   const myId=++spinId; softtick(440);
   show(`<span class="stamp" style="color:var(--fun);border-color:rgba(240,192,64,.4)">Mystery seat</span>
     <h2>Reading your ticket…</h2>
-    <span class="big" id="seat">———</span>
+    <span class="big" id="seat">···</span>
     <p id="seatDesc" style="opacity:.7">the Magic Bus is deciding which kind of Maverick you are…</p>
     <div class="mini">
       <button class="solid" onclick="sayMaybe()">Spin again</button>
-      <button onclick="sayYes()">Claim this seat — yes →</button>
+      <button onclick="sayYes()">Claim this seat, yes →</button>
     </div>`);
   const seat=document.getElementById('seat'), desc=document.getElementById('seatDesc');
   function swap(name){ seat.style.opacity=0; seat.style.filter='blur(6px)';
